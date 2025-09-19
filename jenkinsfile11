@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+     
+
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    stage('JDK Version Check') {
+            steps {
+                echo 'JDK version is ; '
+                sh 'java -version'
+            }
+        }
+    stage('Clone codebase') {
+            steps {
+                echo 'Clone codebase from github'
+                git (url : 'https://github.com/SofKyndryl/maven-project.git', 
+                branch: 'master', credentialsId: 'cred4github') 
+            }
+        }
+    stage('Compile & Test') {
+            steps {
+                echo 'Compiling and Testing'
+                withMaven(maven : 'localMAVEN'){
+                sh 'mvn clean test'
+                } 
+            }
+        }
+    stage('Build') {
+            steps {
+                echo 'Building project'
+                withMaven(maven : 'localMAVEN'){
+                sh 'mvn -B -DskipTests clean package' 
+                }
+            
+            }
+        } 
+    stage('Sonarqube Analisys') {
+            steps {
+                echo 'Qualimetry Analisys with Sonarqube'
+                withSonarQubeEnv(installationName : 'sonarServer' , credentialsId : 'cred4sonar') {
+                sh 'mvn sonar:sonar'
+                }
+            }
+        } 
+    stage('Archive and Deploy') {
+            steps {
+                echo 'Archive'
+               
+            }
+        }        
+    }
+}
